@@ -10,6 +10,7 @@ import cats.{Applicative, ApplicativeError, Id, Monad}
 import coop.rchain.blockstorage._
 import coop.rchain.catscontrib._
 import coop.rchain.casper._
+import coop.rchain.casper.helper.BlockDagStorageTestFixture.mapSize
 import coop.rchain.casper.protocol._
 import coop.rchain.casper.util.ProtoUtil
 import coop.rchain.casper.util.comm.CasperPacketHandler.{
@@ -34,6 +35,7 @@ import coop.rchain.metrics.Metrics
 import coop.rchain.p2p.EffectsTestInstances._
 import coop.rchain.p2p.effects.PacketHandler
 import coop.rchain.rholang.interpreter.Runtime
+import coop.rchain.rspace.Context
 import coop.rchain.shared.{Cell, Log, StoreType}
 import coop.rchain.shared.PathOps.RichPath
 import monix.eval.Task
@@ -166,8 +168,9 @@ object HashSetCasperTestNode {
 
     val blockDagDir   = BlockDagStorageTestFixture.blockDagStorageDir
     val blockStoreDir = BlockDagStorageTestFixture.blockStorageDir
+    val env           = Context.env(blockStoreDir, mapSize)
     for {
-      blockStore <- FileLMDBIndexBlockStore.create[F](blockStoreDir, storageSize)
+      blockStore <- FileLMDBIndexBlockStore.create[F](env, blockStoreDir)
       blockDagStorage <- BlockDagFileStorage.createEmptyFromGenesis[F](
                           BlockDagFileStorage.Config(
                             blockDagDir.resolve("latest-messages-data"),
@@ -242,8 +245,9 @@ object HashSetCasperTestNode {
 
             val blockDagDir   = BlockDagStorageTestFixture.blockDagStorageDir
             val blockStoreDir = BlockDagStorageTestFixture.blockStorageDir
+            val env           = Context.env(blockStoreDir, mapSize)
             for {
-              blockStore <- FileLMDBIndexBlockStore.create[F](blockStoreDir, storageSize)
+              blockStore <- FileLMDBIndexBlockStore.create[F](env, blockStoreDir)
               blockDagStorage <- BlockDagFileStorage.createEmptyFromGenesis[F](
                                   BlockDagFileStorage.Config(
                                     blockDagDir.resolve("latest-messages-data"),
